@@ -3,21 +3,26 @@ import { Role } from '../types';
 
 class RoleService {
   async getRoles(): Promise<Role[]> {
-    // Return hardcoded roles for reliability
-    console.log('Returning hardcoded roles');
-    return [
-      { id: 2, name: 'reader', display_name: 'Читатель', description: 'Может просматривать статьи и оставлять комментарии' },
-      { id: 3, name: 'editor', display_name: 'Редактор', description: 'Может создавать и редактировать статьи' }
-    ];
+    try {
+      const response = await api.get<Role[]>('/roles/public/');
+      return response.data;
+    } catch (error) {
+      console.error('Failed to fetch roles from API:', error);
+      // Fallback to fetching all roles if public endpoint fails
+      try {
+        const response = await api.get<Role[]>('/roles/');
+        // Filter to only reader and editor roles
+        return response.data.filter(role => role.name === 'reader' || role.name === 'editor');
+      } catch (fallbackError) {
+        console.error('Failed to fetch roles:', fallbackError);
+        throw fallbackError;
+      }
+    }
   }
 
   async getRole(id: number): Promise<Role> {
-    // Return hardcoded role based on ID
-    const roles = [
-      { id: 2, name: 'reader', display_name: 'Читатель', description: 'Может просматривать статьи и оставлять комментарии' },
-      { id: 3, name: 'editor', display_name: 'Редактор', description: 'Может создавать и редактировать статьи' }
-    ];
-    return roles.find(r => r.id === id) || roles[0];
+    const response = await api.get<Role>(`/roles/${id}/`);
+    return response.data;
   }
 }
 

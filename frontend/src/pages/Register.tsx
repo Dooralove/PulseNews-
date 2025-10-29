@@ -46,15 +46,21 @@ const Register: React.FC = () => {
   }, []);
 
   const loadRoles = async () => {
-    // Skip API call and use hardcoded roles for reliability
-    console.log('Using hardcoded roles for registration...');
-    const hardcodedRoles = [
-      { id: 2, name: 'reader', display_name: 'Читатель', description: 'Может просматривать статьи и оставлять комментарии' },
-      { id: 3, name: 'editor', display_name: 'Редактор', description: 'Может создавать и редактировать статьи' }
-    ];
-    setRoles(hardcodedRoles);
-    setFormData(prev => ({ ...prev, role: 2 })); // Default to reader
-    setLoadingRoles(false);
+    try {
+      const rolesData = await roleService.getRoles();
+      setRoles(rolesData);
+      // Set default to reader role (find by name, not hardcoded ID)
+      const readerRole = rolesData.find(r => r.name === 'reader');
+      if (readerRole) {
+        setFormData(prev => ({ ...prev, role: readerRole.id }));
+      }
+    } catch (error) {
+      console.error('Failed to load roles:', error);
+      // Keep roles empty array on error
+      setRoles([]);
+    } finally {
+      setLoadingRoles(false);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
