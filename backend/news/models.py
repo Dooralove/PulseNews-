@@ -128,8 +128,12 @@ class Article(models.Model):
     def save(self, *args, **kwargs):
         if not self.slug:
             self.slug = slugify(self.title)
+        # Set published_at when article is published for the first time
         if self.status == 'published' and not self.published_at:
             self.published_at = timezone.now()
+        # Clear published_at when article is moved back to draft
+        elif self.status == 'draft' and self.published_at:
+            self.published_at = None
         super().save(*args, **kwargs)
 
 

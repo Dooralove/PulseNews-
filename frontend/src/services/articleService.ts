@@ -11,11 +11,13 @@ import {
 class ArticleService {
   async getArticles(params?: {
     page?: number;
+    page_size?: number;
     search?: string;
     category?: string;
     tags?: string;
     author?: string;
     ordering?: string;
+    status?: 'draft' | 'published' | 'archived';
   }): Promise<PaginatedResponse<Article>> {
     const response = await api.get<PaginatedResponse<Article>>('/articles/', { params });
     return response.data;
@@ -84,6 +86,11 @@ class ArticleService {
 
   async publishArticle(id: number): Promise<Article> {
     const response = await api.post<Article>(`/articles/${id}/publish/`);
+    return response.data;
+  }
+
+  async unpublishArticle(id: number): Promise<Article> {
+    const response = await api.post<Article>(`/articles/${id}/unpublish/`);
     return response.data;
   }
 

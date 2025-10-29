@@ -29,6 +29,8 @@ import {
   Visibility,
   CalendarToday,
   FilterList,
+  Publish,
+  Unpublished,
 } from '@mui/icons-material';
 import { Article } from '../types';
 import articleService from '../services/articleService';
@@ -108,6 +110,24 @@ const MyArticles: React.FC = () => {
       } catch (err: any) {
         setError('Не удалось удалить статью');
       }
+    }
+  };
+
+  const handlePublish = async (id: number) => {
+    try {
+      const updatedArticle = await articleService.publishArticle(id);
+      setArticles(articles.map(a => a.id === id ? updatedArticle : a));
+    } catch (err: any) {
+      setError('Не удалось опубликовать статью');
+    }
+  };
+
+  const handleUnpublish = async (id: number) => {
+    try {
+      const updatedArticle = await articleService.unpublishArticle(id);
+      setArticles(articles.map(a => a.id === id ? updatedArticle : a));
+    } catch (err: any) {
+      setError('Не удалось снять статью с публикации');
     }
   };
 
@@ -338,6 +358,25 @@ const MyArticles: React.FC = () => {
                   >
                     <Edit />
                   </IconButton>
+                  {article.status === 'draft' ? (
+                    <IconButton 
+                      size="small"
+                      color="success"
+                      onClick={() => handlePublish(article.id)}
+                      title="Опубликовать"
+                    >
+                      <Publish />
+                    </IconButton>
+                  ) : article.status === 'published' ? (
+                    <IconButton 
+                      size="small"
+                      color="warning"
+                      onClick={() => handleUnpublish(article.id)}
+                      title="Снять с публикации"
+                    >
+                      <Unpublished />
+                    </IconButton>
+                  ) : null}
                 </Box>
                 <IconButton 
                   size="small"
