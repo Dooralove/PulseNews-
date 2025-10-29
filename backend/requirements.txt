@@ -1,0 +1,14 @@
+Django>=4.2
+djangorestframework
+djangorestframework-simplejwt
+psycopg2-binary
+gunicorn
+celery[redis]
+redis
+newspaper3k
+beautifulsoup4
+python-dotenv
+django-cors-headers
+drf-nested-routers
+django-filter
+lxml[html_clean]

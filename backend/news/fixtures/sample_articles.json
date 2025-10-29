@@ -1,0 +1,42 @@
+[
+  {
+    "model": "news.article",
+    "pk": 1,
+    "fields": {
+      "title": "AI Breakthroughs to Watch",
+      "slug": "ai-breakthroughs-to-watch",
+      "content": "Recent advances in artificial intelligence are reshaping industries from healthcare to finance. This article highlights the most promising breakthroughs and what to expect next.",
+      "excerpt": "Top AI innovations reshaping the next decade.",
+      "cover_image": "",
+      "author": null,
+      "category": null,
+      "status": "published",
+      "created_at": "2025-10-15T00:00:00Z",
+      "updated_at": "2025-10-15T00:00:00Z",
+      "published_at": "2025-10-15T00:00:00Z",
+      "views": 0,
+      "source_url": "https://example.com/ai-breakthroughs",
+      "tags": []
+    }
+  },
+  {
+    "model": "news.article",
+    "pk": 2,
+    "fields": {
+      "title": "Global Climate Initiatives Gain Momentum",
+      "slug": "global-climate-initiatives",
+      "content": "Governments and private organizations are accelerating climate initiatives. We explore key projects, funding strategies, and expected impact over the coming years.",
+      "excerpt": "Worldwide climate action projects taking shape.",
+      "cover_image": "",
+      "author": null,
+      "category": null,
+      "status": "published",
+      "created_at": "2025-10-14T00:00:00Z",
+      "updated_at": "2025-10-14T00:00:00Z",
+      "published_at": "2025-10-14T00:00:00Z",
+      "views": 0,
+      "source_url": "https://example.com/climate-initiatives",
+      "tags": []
+    }
+  }
+]

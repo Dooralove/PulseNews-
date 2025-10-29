@@ -1,0 +1,17 @@
+node_modules
+npm-debug.log
+build
+.dockerignore
+.git
+.gitignore
+README.md
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+cleanup.ps1
+src/components/ArticleCard
+src/components/NewsFeed
+src/components/CommentSection/CommentSection.tsx
+src/pages/ArticlePage

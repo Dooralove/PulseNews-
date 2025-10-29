@@ -1,0 +1,99 @@
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: pulsenews
+      POSTGRES_USER: pulsenews
+      POSTGRES_PASSWORD: pulsenews123
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pulsenews -d pulsenews"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Redis
+  redis:
+    image: redis:7-alpine
+    command: redis-server --requirepass redispass123
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Django Backend
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: backend
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      - DJANGO_SETTINGS_MODULE=pulse_news.settings.local
+      - SECRET_KEY=django-insecure-test-key-change-in-production
+      - DEBUG=1
+      - ALLOWED_HOSTS=localhost,127.0.0.1,backend
+      - CORS_ALLOWED_ORIGINS=http://localhost:3000,http://frontend:80
+      - DATABASE_URL=postgresql://pulsenews:pulsenews123@db:5432/pulsenews
+      - REDIS_URL=redis://:redispass123@redis:6379/0
+      - CELERY_BROKER_URL=redis://:redispass123@redis:6379/1
+      - CELERY_RESULT_BACKEND=redis://:redispass123@redis:6379/1
+    volumes:
+      - ./backend:/app
+      - static_volume:/app/staticfiles
+      - media_volume:/app/media
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py collectstatic --noinput &&
+             gunicorn --bind 0.0.0.0:8000 --workers 3 pulse_news.wsgi:application"
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+
+  # Celery Worker
+  celery_worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: celery_worker
+    command: celery -A pulse_news worker -l INFO
+    depends_on:
+      - redis
+      - backend
+    environment:
+      - DJANGO_SETTINGS_MODULE=pulse_news.settings.local
+      - SECRET_KEY=django-insecure-test-key-change-in-production
+      - DATABASE_URL=postgresql://pulsenews:pulsenews123@db:5432/pulsenews
+      - CELERY_BROKER_URL=redis://:redispass123@redis:6379/1
+      - CELERY_RESULT_BACKEND=redis://:redispass123@redis:6379/1
+    volumes:
+      - ./backend:/app
+    restart: unless-stopped
+
+  # Frontend (React + Nginx)
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: frontend
+    depends_on:
+      - backend
+    ports:
+      - "3000:80"
+    restart: unless-stopped
+
+# Volumes
+volumes:
+  postgres_data:
+  redis_data:
+  static_volume:
+  media_volume:
