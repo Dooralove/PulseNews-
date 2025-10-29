@@ -24,7 +24,7 @@ import bookmarkService from '../services/bookmarkService';
 import { useAuth } from '../contexts/AuthContext';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
-import CommentSection from '../components/CommentSection';
+import CommentSectionNew from '../components/CommentSectionNew';
 import { Container, Section, Grid } from '../components/layout';
 import { Headline, BodyText, Caption, Button } from '../components/ui';
 import { Tag } from '../components/ui/Tag';
@@ -274,9 +274,6 @@ const ArticleDetailNew: React.FC = () => {
                   alt={article.title}
                   style={featuredImageStyles}
                 />
-                {article.image_caption && (
-                  <Caption>{article.image_caption}</Caption>
-                )}
               </div>
             )}
 
@@ -365,7 +362,7 @@ const ArticleDetailNew: React.FC = () => {
       {/* Comments Section */}
       <Section background="gray">
         <Container maxWidth="narrow">
-          <CommentSection articleId={parseInt(id!)} />
+          <CommentSectionNew articleId={parseInt(id!)} />
         </Container>
       </Section>
     </>
