@@ -35,7 +35,7 @@ class ArticleViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows articles to be viewed or edited.
     """
-    queryset = Article.objects.filter(status='published').order_by('-published_at')
+    queryset = Article.objects.all().order_by('-created_at')
     permission_classes = [CanManageArticles]
     filter_backends = [filters.SearchFilter, DjangoFilterBackend, filters.OrderingFilter]
     search_fields = ['title', 'content', 'excerpt']
@@ -44,9 +44,10 @@ class ArticleViewSet(viewsets.ModelViewSet):
         'tags__slug': ['exact'],
         'published_at': ['date__gte', 'date__lte', 'exact', 'gt', 'lt'],
         'author__username': ['exact'],
+        'status': ['exact'],
     }
     ordering_fields = ['published_at', 'views', 'created_at', 'updated_at']
-    ordering = ['-published_at']
+    ordering = ['-created_at']
 
     def get_serializer_class(self):
         if self.action == 'list':
@@ -57,6 +58,33 @@ class ArticleViewSet(viewsets.ModelViewSet):
     
     def get_queryset(self):
         queryset = super().get_queryset()
+        
+        # Check if status filter is explicitly provided
+        status_filter = self.request.query_params.get('status', None)
+        
+        # If status is explicitly set to 'published', only show published articles
+        if status_filter == 'published':
+            queryset = queryset.filter(status='published')
+        # If status is explicitly set to 'draft', only show user's own drafts
+        elif status_filter == 'draft':
+            if self.request.user.is_authenticated:
+                queryset = queryset.filter(status='draft', author=self.request.user)
+            else:
+                queryset = queryset.none()
+        # If no status filter is provided, apply default visibility rules
+        elif status_filter is None:
+            # For staff users, include all articles (including drafts)
+            if self.request.user.is_staff:
+                pass  # Show all articles
+            # For authenticated users, show published articles + their own drafts
+            elif self.request.user.is_authenticated:
+                queryset = queryset.filter(
+                    Q(status='published') | 
+                    Q(status='draft', author=self.request.user)
+                )
+            # For unauthenticated users, only show published articles
+            else:
+                queryset = queryset.filter(status='published')
         
         # Filter by multiple tags (comma-separated)
         tags = self.request.query_params.get('tags', None)
@@ -74,19 +102,7 @@ class ArticleViewSet(viewsets.ModelViewSet):
                 Q(excerpt__icontains=search)
             ).distinct()
         
-        # For staff users, include all articles (including drafts)
-        if self.request.user.is_staff:
-            return queryset
-            
-        # For authenticated users, show their drafts
-        if self.request.user.is_authenticated:
-            return queryset.filter(
-                Q(status='published') | 
-                Q(status='draft', author=self.request.user)
-            )
-            
-        # For unauthenticated users, only show published articles
-        return queryset.filter(status='published')
+        return queryset
     
     def perform_create(self, serializer):
         # Set the author to the current user
@@ -118,7 +134,31 @@ class ArticleViewSet(viewsets.ModelViewSet):
             'action': 'published'
         })
         
-        return Response({'status': 'article published'})
+        serializer = self.get_serializer(article)
+        return Response(serializer.data)
+    
+    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
+    def unpublish(self, request, pk=None):
+        """Custom action to unpublish an article (move to draft)."""
+        article = self.get_object()
+        if article.author != request.user and not request.user.is_staff:
+            return Response(
+                {"detail": "You don't have permission to unpublish this article."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        article.status = 'draft'
+        article.save()
+        
+        # Log article update activity
+        log_user_activity(request.user, 'article_update', request, {
+            'article_id': article.id,
+            'article_title': article.title,
+            'action': 'unpublished'
+        })
+        
+        serializer = self.get_serializer(article)
+        return Response(serializer.data)
 
 
 class CategoryViewSet(viewsets.ModelViewSet):

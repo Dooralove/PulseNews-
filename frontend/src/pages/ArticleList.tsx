@@ -24,7 +24,7 @@ const ArticleList: React.FC = () => {
     setError('');
     
     try {
-      const params: any = { page: 1, page_size: 20 };
+      const params: any = { page: 1, page_size: 20, status: 'published' };
       
       const search = searchParams.get('search');
       const category = searchParams.get('category');
