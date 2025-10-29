@@ -8,6 +8,7 @@ interface AuthContextType {
   login: (data: LoginData) => Promise<void>;
   register: (data: RegisterData) => Promise<void>;
   logout: () => Promise<void>;
+  deleteAccount: () => Promise<void>;
   updateUser: (user: User) => void;
   isAuthenticated: boolean;
   canManageArticles: boolean;
@@ -74,6 +75,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setUser(null);
   };
 
+  const deleteAccount = async () => {
+    await authService.deleteAccount();
+    setUser(null);
+  };
+
   const updateUser = (updatedUser: User) => {
     setUser(updatedUser);
   };
@@ -90,6 +96,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     login,
     register,
     logout,
+    deleteAccount,
     updateUser,
     isAuthenticated,
     canManageArticles,

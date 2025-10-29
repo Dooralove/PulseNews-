@@ -29,10 +29,12 @@ import {
   Cancel as CancelIcon,
   Lock as LockIcon,
   History as HistoryIcon,
+  DeleteForever as DeleteIcon,
 } from '@mui/icons-material';
 import { useAuth } from '../contexts';
 import authService from '../services/authService';
 import { User, PasswordChangeData } from '../types';
+import { useNavigate } from 'react-router-dom';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -66,7 +68,8 @@ interface UserActivity {
 }
 
 const Profile: React.FC = () => {
-  const { user, updateUser } = useAuth();
+  const { user, updateUser, deleteAccount } = useAuth();
+  const navigate = useNavigate();
   const [tabValue, setTabValue] = useState(0);
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -93,6 +96,10 @@ const Profile: React.FC = () => {
     new_password: '',
     new_password2: '',
   });
+
+  // Delete account dialog
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
 
   // Avatar upload
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
@@ -231,6 +238,25 @@ const Profile: React.FC = () => {
                        err.response?.data?.detail ||
                        'Ошибка при смене пароля';
       setError(errorMsg);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (deleteConfirmText !== 'DELETE') {
+      setError('Введите DELETE для подтверждения');
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      await deleteAccount();
+      navigate('/login', { replace: true });
+    } catch (err: any) {
+      setError(err.response?.data?.detail || 'Ошибка при удалении аккаунта');
     } finally {
       setLoading(false);
     }
@@ -423,44 +449,55 @@ const Profile: React.FC = () => {
                   </Box>
                 </Box>
 
-                <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
-                  {!isEditing ? (
-                    <>
-                      <Button
-                        variant="contained"
-                        startIcon={<EditIcon />}
-                        onClick={handleEditToggle}
-                      >
-                        Редактировать
-                      </Button>
-                      <Button
-                        variant="outlined"
-                        startIcon={<LockIcon />}
-                        onClick={() => setPasswordDialogOpen(true)}
-                      >
-                        Сменить пароль
-                      </Button>
-                    </>
-                  ) : (
-                    <>
-                      <Button
-                        variant="outlined"
-                        startIcon={<CancelIcon />}
-                        onClick={handleEditToggle}
-                        disabled={loading}
-                      >
-                        Отмена
-                      </Button>
-                      <Button
-                        type="submit"
-                        variant="contained"
-                        startIcon={<SaveIcon />}
-                        disabled={loading}
-                      >
-                        {loading ? <CircularProgress size={24} /> : 'Сохранить'}
-                      </Button>
-                    </>
-                  )}
+                <Box sx={{ display: 'flex', gap: 2, justifyContent: 'space-between', flexWrap: 'wrap' }}>
+                  <Button
+                    variant="outlined"
+                    color="error"
+                    startIcon={<DeleteIcon />}
+                    onClick={() => setDeleteDialogOpen(true)}
+                    disabled={isEditing}
+                  >
+                    Удалить аккаунт
+                  </Button>
+                  <Box sx={{ display: 'flex', gap: 2 }}>
+                    {!isEditing ? (
+                      <>
+                        <Button
+                          variant="contained"
+                          startIcon={<EditIcon />}
+                          onClick={handleEditToggle}
+                        >
+                          Редактировать
+                        </Button>
+                        <Button
+                          variant="outlined"
+                          startIcon={<LockIcon />}
+                          onClick={() => setPasswordDialogOpen(true)}
+                        >
+                          Сменить пароль
+                        </Button>
+                      </>
+                    ) : (
+                      <>
+                        <Button
+                          variant="outlined"
+                          startIcon={<CancelIcon />}
+                          onClick={handleEditToggle}
+                          disabled={loading}
+                        >
+                          Отмена
+                        </Button>
+                        <Button
+                          type="submit"
+                          variant="contained"
+                          startIcon={<SaveIcon />}
+                          disabled={loading}
+                        >
+                          {loading ? <CircularProgress size={24} /> : 'Сохранить'}
+                        </Button>
+                      </>
+                    )}
+                  </Box>
                 </Box>
               </Box>
             </Box>
@@ -566,6 +603,54 @@ const Profile: React.FC = () => {
             disabled={loading}
           >
             {loading ? <CircularProgress size={24} /> : 'Сменить пароль'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Delete Account Dialog */}
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={() => !loading && setDeleteDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>Удаление аккаунта</DialogTitle>
+        <DialogContent>
+          <Alert severity="warning" sx={{ mb: 2 }}>
+            Это действие необратимо! Все ваши данные будут удалены.
+          </Alert>
+          {error && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {error}
+            </Alert>
+          )}
+          <Typography variant="body2" sx={{ mb: 2 }}>
+            Для подтверждения удаления аккаунта введите <strong>DELETE</strong> в поле ниже:
+          </Typography>
+          <TextField
+            fullWidth
+            label="Введите DELETE"
+            value={deleteConfirmText}
+            onChange={(e) => setDeleteConfirmText(e.target.value)}
+            margin="normal"
+            required
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => {
+            setDeleteDialogOpen(false);
+            setDeleteConfirmText('');
+            setError(null);
+          }} disabled={loading}>
+            Отмена
+          </Button>
+          <Button
+            onClick={handleDeleteAccount}
+            variant="contained"
+            color="error"
+            disabled={loading || deleteConfirmText !== 'DELETE'}
+          >
+            {loading ? <CircularProgress size={24} /> : 'Удалить аккаунт'}
           </Button>
         </DialogActions>
       </Dialog>

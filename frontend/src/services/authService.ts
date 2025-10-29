@@ -60,6 +60,14 @@ class AuthService {
     await api.post('/auth/password/change/', data);
   }
 
+  async deleteAccount(): Promise<void> {
+    await api.delete('/auth/profile/');
+    // Clear local storage after account deletion
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
+    localStorage.removeItem('user');
+  }
+
   async getUserActivities(): Promise<any[]> {
     const response = await api.get('/users/my_activities/');
     return response.data;
