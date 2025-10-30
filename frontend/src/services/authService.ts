@@ -65,6 +65,13 @@ class AuthService {
     return response.data;
   }
 
+  async deleteAccount(): Promise<void> {
+    await api.delete('/auth/profile/');
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
+    localStorage.removeItem('user');
+  }
+
   getCurrentUser(): User | null {
     const userStr = localStorage.getItem('user');
     if (userStr) {

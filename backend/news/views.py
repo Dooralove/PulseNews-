@@ -35,7 +35,7 @@ class ArticleViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows articles to be viewed or edited.
     """
-    queryset = Article.objects.filter(status='published').order_by('-published_at')
+    queryset = Article.objects.all().order_by('-published_at', '-created_at')
     permission_classes = [CanManageArticles]
     filter_backends = [filters.SearchFilter, DjangoFilterBackend, filters.OrderingFilter]
     search_fields = ['title', 'content', 'excerpt']
@@ -44,9 +44,10 @@ class ArticleViewSet(viewsets.ModelViewSet):
         'tags__slug': ['exact'],
         'published_at': ['date__gte', 'date__lte', 'exact', 'gt', 'lt'],
         'author__username': ['exact'],
+        'status': ['exact'],
     }
     ordering_fields = ['published_at', 'views', 'created_at', 'updated_at']
-    ordering = ['-published_at']
+    ordering = ['-published_at', '-created_at']
 
     def get_serializer_class(self):
         if self.action == 'list':
@@ -78,12 +79,12 @@ class ArticleViewSet(viewsets.ModelViewSet):
         if self.request.user.is_staff:
             return queryset
             
-        # For authenticated users, show their drafts
+        # For authenticated users, show published articles + their own drafts
         if self.request.user.is_authenticated:
             return queryset.filter(
                 Q(status='published') | 
-                Q(status='draft', author=self.request.user)
-            )
+                Q(author=self.request.user)
+            ).distinct()
             
         # For unauthenticated users, only show published articles
         return queryset.filter(status='published')

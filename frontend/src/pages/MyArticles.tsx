@@ -29,6 +29,9 @@ import {
   Visibility,
   CalendarToday,
   FilterList,
+  Publish,
+  DraftsOutlined,
+  CheckCircleOutline,
 } from '@mui/icons-material';
 import { Article } from '../types';
 import articleService from '../services/articleService';
@@ -42,6 +45,7 @@ const MyArticles: React.FC = () => {
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [articleToDelete, setArticleToDelete] = useState<number | null>(null);
@@ -55,24 +59,20 @@ const MyArticles: React.FC = () => {
     setError('');
     
     try {
-      const data = await articleService.getArticles();
-      let filteredArticles = Array.isArray(data) ? data : data.results || [];
-      
-      // Фильтруем статьи по автору (только свои статьи)
-      if (user) {
-        filteredArticles = filteredArticles.filter(article => 
-          article.author && article.author.id === user.id
-        );
-      }
+      const params: any = {
+        author: user?.username,
+        page_size: 100,
+      };
       
       // Фильтруем по статусу
       if (filterStatus !== 'all') {
-        filteredArticles = filteredArticles.filter(article => 
-          article.status === filterStatus
-        );
+        params.status = filterStatus;
       }
       
-      setArticles(filteredArticles);
+      const data = await articleService.getArticles(params);
+      const articlesArray = Array.isArray(data) ? data : data.results || [];
+      
+      setArticles(articlesArray);
     } catch (err: any) {
       console.error('Error loading articles:', err);
       setError(err.response?.data?.detail || 'Не удалось загрузить статьи');
@@ -108,6 +108,17 @@ const MyArticles: React.FC = () => {
       } catch (err: any) {
         setError('Не удалось удалить статью');
       }
+    }
+  };
+
+  const handlePublish = async (id: number) => {
+    try {
+      await articleService.publishArticle(id);
+      setSuccess('Статья успешно опубликована!');
+      // Перезагружаем статьи после публикации
+      loadArticles();
+    } catch (err: any) {
+      setError('Не удалось опубликовать статью');
     }
   };
 
@@ -195,6 +206,12 @@ const MyArticles: React.FC = () => {
         </Alert>
       )}
 
+      {success && (
+        <Alert severity="success" sx={{ mb: 3 }} onClose={() => setSuccess('')}>
+          {success}
+        </Alert>
+      )}
+
       {articles.length === 0 ? (
         <Paper elevation={1} sx={{ p: 6, textAlign: 'center' }}>
           <Typography variant="h6" color="text.secondary" gutterBottom>
@@ -227,6 +244,9 @@ const MyArticles: React.FC = () => {
                 display: 'flex', 
                 flexDirection: 'column',
                 transition: 'transform 0.2s, box-shadow 0.2s',
+                border: article.status === 'draft' ? '2px solid' : '1px solid',
+                borderColor: article.status === 'draft' ? 'warning.main' : 'divider',
+                bgcolor: article.status === 'draft' ? 'warning.lighter' : 'background.paper',
                 '&:hover': {
                   transform: 'translateY(-4px)',
                   boxShadow: 4,
@@ -248,11 +268,15 @@ const MyArticles: React.FC = () => {
               )}
               
               <CardContent sx={{ flexGrow: 1 }}>
-                <Stack direction="row" spacing={1} sx={{ mb: 1 }}>
+                <Stack direction="row" spacing={1} sx={{ mb: 1, flexWrap: 'wrap', gap: 0.5 }}>
                   <Chip 
+                    icon={article.status === 'draft' ? <DraftsOutlined /> : article.status === 'published' ? <CheckCircleOutline /> : undefined}
                     label={getStatusLabel(article.status)} 
                     size="small" 
                     color={getStatusColor(article.status)}
+                    sx={{
+                      fontWeight: article.status === 'draft' ? 700 : 500,
+                    }}
                   />
                   {article.category && (
                     <Chip 
@@ -338,6 +362,16 @@ const MyArticles: React.FC = () => {
                   >
                     <Edit />
                   </IconButton>
+                  {article.status === 'draft' && (
+                    <IconButton 
+                      size="small"
+                      color="success"
+                      onClick={() => handlePublish(article.id)}
+                      title="Опубликовать"
+                    >
+                      <Publish />
+                    </IconButton>
+                  )}
                 </Box>
                 <IconButton 
                   size="small"

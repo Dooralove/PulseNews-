@@ -11,11 +11,13 @@ import {
 class ArticleService {
   async getArticles(params?: {
     page?: number;
+    page_size?: number;
     search?: string;
     category?: string;
     tags?: string;
     author?: string;
     ordering?: string;
+    status?: string;
   }): Promise<PaginatedResponse<Article>> {
     const response = await api.get<PaginatedResponse<Article>>('/articles/', { params });
     return response.data;
