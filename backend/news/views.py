@@ -258,10 +258,11 @@ class ArticleCommentViewSet(viewsets.ModelViewSet):
     filter_backends = [filters.OrderingFilter]
     ordering_fields = ['created_at', 'updated_at']
     ordering = ['created_at']
+    pagination_class = None  # Disable pagination for comments
     
     def get_queryset(self):
         article_pk = self.kwargs.get('article_pk')
-        queryset = Comment.objects.filter(article_id=article_pk)
+        queryset = Comment.objects.filter(article_id=article_pk, parent__isnull=True)
         
         # For non-moderators, only show active comments
         if not (self.request.user.is_authenticated and self.request.user.can_moderate_content()):
