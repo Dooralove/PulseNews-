@@ -57,14 +57,23 @@ class ArticleService {
   async updateArticle(id: number, data: ArticleUpdateData): Promise<Article> {
     const formData = new FormData();
     
-    if (data.title) formData.append('title', data.title);
-    if (data.content) formData.append('content', data.content);
-    if (data.excerpt) formData.append('excerpt', data.excerpt);
-    if (data.status) formData.append('status', data.status);
-    if (data.category) formData.append('category', data.category.toString());
-    if (data.cover_image) formData.append('cover_image', data.cover_image);
+    // Always include required fields if they exist (even if empty string)
+    if (data.title !== undefined) formData.append('title', data.title);
+    if (data.content !== undefined) formData.append('content', data.content);
+    if (data.excerpt !== undefined) formData.append('excerpt', data.excerpt);
+    if (data.status !== undefined) formData.append('status', data.status);
     
-    if (data.tags) {
+    // Optional fields
+    if (data.category !== undefined && data.category !== null) {
+      formData.append('category', data.category.toString());
+    }
+    
+    if (data.cover_image) {
+      formData.append('cover_image', data.cover_image);
+    }
+    
+    // Tags - always send if defined (even if empty array)
+    if (data.tags !== undefined) {
       data.tags.forEach(tagId => {
         formData.append('tags', tagId.toString());
       });

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import {
   AppBar,
   Toolbar,
@@ -52,25 +53,40 @@ const Navbar: React.FC = () => {
   return (
     <AppBar position="static">
       <Toolbar>
-        <Typography
-          variant="h6"
-          component={RouterLink}
-          to="/"
-          sx={{
-            flexGrow: 1,
-            textDecoration: 'none',
-            color: 'inherit',
-            fontWeight: 'bold',
-          }}
+        <motion.div
+          style={{ flexGrow: 1 }}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
         >
-          PulseNews
-        </Typography>
+          <Typography
+            variant="h6"
+            component={RouterLink}
+            to="/"
+            sx={{
+              textDecoration: 'none',
+              color: 'inherit',
+              fontWeight: 'bold',
+              cursor: 'pointer',
+            }}
+          >
+            PulseNews
+          </Typography>
+        </motion.div>
 
         <Button
+          component={motion.button}
           color="inherit"
-          component={RouterLink}
-          to="/"
-          startIcon={<Article />}
+          onClick={() => navigate('/')}
+          startIcon={
+            <motion.div
+              whileHover={{ rotate: [0, -10, 10, -10, 0] }}
+              transition={{ duration: 0.5 }}
+            >
+              <Article />
+            </motion.div>
+          }
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
         >
           Статьи
         </Button>
@@ -79,21 +95,33 @@ const Navbar: React.FC = () => {
           <>
             {canManageArticles && (
               <Button
+                component={motion.button}
                 color="inherit"
-                component={RouterLink}
-                to="/articles/create"
-                startIcon={<Create />}
+                onClick={() => navigate('/articles/create')}
+                startIcon={
+                  <motion.div
+                    whileHover={{ rotate: 360 }}
+                    transition={{ duration: 0.6 }}
+                  >
+                    <Create />
+                  </motion.div>
+                }
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
               >
                 Создать статью
               </Button>
             )}
             <IconButton
+              component={motion.button}
               size="large"
               aria-label="account of current user"
               aria-controls="menu-appbar"
               aria-haspopup="true"
               onClick={handleMenu}
               color="inherit"
+              whileHover={{ scale: 1.1, rotate: 5 }}
+              whileTap={{ scale: 0.9 }}
             >
               {user?.avatar_url ? (
                 <Avatar src={user.avatar_url} alt={user.username} sx={{ width: 32, height: 32 }} />
@@ -162,18 +190,36 @@ const Navbar: React.FC = () => {
         ) : (
           <>
             <Button
+              component={motion.button}
               color="inherit"
-              component={RouterLink}
-              to="/login"
-              startIcon={<Login />}
+              onClick={() => navigate('/login')}
+              startIcon={
+                <motion.div
+                  whileHover={{ x: [0, -3, 3, 0] }}
+                  transition={{ duration: 0.4 }}
+                >
+                  <Login />
+                </motion.div>
+              }
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
             >
               Войти
             </Button>
             <Button
+              component={motion.button}
               color="inherit"
-              component={RouterLink}
-              to="/register"
-              startIcon={<PersonAdd />}
+              onClick={() => navigate('/register')}
+              startIcon={
+                <motion.div
+                  whileHover={{ scale: [1, 1.2, 1] }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <PersonAdd />
+                </motion.div>
+              }
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
             >
               Регистрация
             </Button>

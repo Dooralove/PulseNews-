@@ -109,9 +109,8 @@ class ArticleDetailSerializer(ArticleListSerializer):
 
 class ArticleCreateUpdateSerializer(serializers.ModelSerializer):
     """Serializer for creating and updating articles"""
-    tags = serializers.SlugRelatedField(
+    tags = serializers.PrimaryKeyRelatedField(
         many=True,
-        slug_field='name',
         queryset=Tag.objects.all(),
         required=False
     )

@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Box, Container, Typography, Button, Paper } from '@mui/material';
 import { PersonAdd, Article as ArticleIcon } from '@mui/icons-material';
+import { motion } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
 
 const HeroSection: React.FC = () => {
@@ -39,6 +40,20 @@ const HeroSection: React.FC = () => {
             sx={{
               fontWeight: 'bold',
               fontSize: { xs: '2.5rem', md: '3.5rem' },
+              background: 'linear-gradient(135deg, #ffffff 0%, #e0e7ff 50%, #ffffff 100%)',
+              backgroundClip: 'text',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundSize: '200% auto',
+              animation: 'gradient-shift 3s ease infinite',
+              '@keyframes gradient-shift': {
+                '0%, 100%': {
+                  backgroundPosition: '0% center',
+                },
+                '50%': {
+                  backgroundPosition: '100% center',
+                },
+              },
             }}
           >
             Добро пожаловать в PulseNews
@@ -63,10 +78,17 @@ const HeroSection: React.FC = () => {
             }}
           >
             <Button
+              component={motion.button}
               variant="contained"
               size="large"
               startIcon={<PersonAdd />}
               onClick={() => navigate('/register')}
+              whileHover={{ 
+                scale: 1.05,
+                y: -4,
+                boxShadow: '0 8px 16px rgba(0, 0, 0, 0.2)'
+              }}
+              whileTap={{ scale: 0.95 }}
               sx={{
                 bgcolor: 'white',
                 color: 'primary.main',
@@ -74,21 +96,23 @@ const HeroSection: React.FC = () => {
                 py: 1.5,
                 fontSize: '1.1rem',
                 fontWeight: 'bold',
-                '&:hover': {
-                  bgcolor: 'grey.100',
-                  transform: 'translateY(-2px)',
-                  boxShadow: 4,
-                },
                 transition: 'all 0.3s',
               }}
             >
               Зарегистрироваться
             </Button>
             <Button
+              component={motion.button}
               variant="outlined"
               size="large"
               startIcon={<ArticleIcon />}
               onClick={() => navigate('/')}
+              whileHover={{ 
+                scale: 1.05,
+                y: -4,
+                backgroundColor: 'rgba(255, 255, 255, 0.15)'
+              }}
+              whileTap={{ scale: 0.95 }}
               sx={{
                 borderColor: 'white',
                 color: 'white',
@@ -96,11 +120,6 @@ const HeroSection: React.FC = () => {
                 py: 1.5,
                 fontSize: '1.1rem',
                 fontWeight: 'bold',
-                '&:hover': {
-                  borderColor: 'white',
-                  bgcolor: 'rgba(255, 255, 255, 0.1)',
-                  transform: 'translateY(-2px)',
-                },
                 transition: 'all 0.3s',
               }}
             >

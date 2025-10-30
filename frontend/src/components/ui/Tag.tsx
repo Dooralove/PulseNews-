@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 import { colors, typography, spacing, borderRadius } from '../../theme/designTokens';
 import { getCategoryColor } from '../../theme/utils';
 
@@ -38,10 +39,9 @@ export const Tag: React.FC<TagProps> = ({
     textTransform: 'uppercase',
     letterSpacing: typography.letterSpacing.wide,
     padding: `${spacing[1]} ${spacing[2]}`,
-    borderRadius: borderRadius.none,
+    borderRadius: '4px',
     display: 'inline-block',
     cursor: onClick ? 'pointer' : 'default',
-    transition: '150ms ease-in-out',
   };
 
   const variantStyles: Record<string, React.CSSProperties> = {
@@ -62,28 +62,33 @@ export const Tag: React.FC<TagProps> = ({
     },
   };
 
-  const hoverStyles: React.CSSProperties = onClick ? {
-    opacity: 0.8,
-    transform: 'translateY(-1px)',
+  const motionProps = onClick ? {
+    whileHover: { 
+      scale: 1.05,
+      y: -2,
+      boxShadow: '0 4px 8px rgba(0, 0, 0, 0.15)'
+    },
+    whileTap: { scale: 0.95 },
+    transition: { duration: 0.2 }
   } : {};
 
   const combinedStyles = {
     ...baseStyles,
     ...variantStyles[variant],
-    ...(isHovered ? hoverStyles : {}),
     ...style,
   };
 
   return (
-    <span
+    <motion.span
       style={combinedStyles}
       onClick={onClick}
       className={className}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      {...motionProps}
     >
       {children}
-    </span>
+    </motion.span>
   );
 };
 

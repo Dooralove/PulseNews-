@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
+import { motion } from 'framer-motion';
 import { Article } from '../../types';
 import { colors, spacing, typography, transitions } from '../../theme/designTokens';
 import { Headline, BodyText, Caption } from '../ui/Typography';
@@ -21,8 +22,9 @@ export const NewsCardLarge: React.FC<NewsCardLargeProps> = ({ article }) => {
 
   const cardStyles: React.CSSProperties = {
     cursor: 'pointer',
-    transition: transitions.base,
     backgroundColor: colors.background.primary,
+    borderRadius: '8px',
+    overflow: 'hidden',
   };
 
   const imageContainerStyles: React.CSSProperties = {
@@ -65,11 +67,20 @@ export const NewsCardLarge: React.FC<NewsCardLargeProps> = ({ article }) => {
   };
 
   return (
-    <article
+    <motion.article
       style={cardStyles}
       onClick={handleClick}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      whileHover={{ 
+        y: -8, 
+        boxShadow: '0 12px 24px rgba(0, 0, 0, 0.15)'
+      }}
+      transition={{ 
+        duration: 0.3, 
+        ease: 'easeOut' 
+      }}
+      initial={{ boxShadow: '0 2px 4px rgba(0, 0, 0, 0.05)' }}
     >
       {article.cover_image && (
         <div style={imageContainerStyles}>
@@ -114,6 +125,6 @@ export const NewsCardLarge: React.FC<NewsCardLargeProps> = ({ article }) => {
           )}
         </div>
       </div>
-    </article>
+    </motion.article>
   );
 };

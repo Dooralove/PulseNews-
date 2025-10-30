@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { CircularProgress, Alert, Box } from '@mui/material';
+import { motion } from 'framer-motion';
 import { Article } from '../types';
 import articleService from '../services/articleService';
 import { Container, Section, Grid } from '../components/layout';
-import { Headline } from '../components/ui';
+import { Headline, ArticleListSkeleton } from '../components/ui';
 import { NewsCardHero, NewsCardLarge, NewsCardMedium } from '../components/news';
 import { spacing, colors } from '../theme/designTokens';
 
@@ -46,11 +47,9 @@ const Home: React.FC = () => {
 
   if (loading && articles.length === 0) {
     return (
-      <Section>
+      <Section background="gray" paddingY={10}>
         <Container>
-          <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
-            <CircularProgress />
-          </Box>
+          <ArticleListSkeleton count={9} />
         </Container>
       </Section>
     );
@@ -70,6 +69,25 @@ const Home: React.FC = () => {
   const secondaryArticles = articles.slice(1, 5);
   const latestArticles = articles.slice(5, 14);
 
+  // Animation variants for staggered fade-in
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0
+    }
+  };
+
   return (
     <>
       {/* Hero Section */}
@@ -83,11 +101,19 @@ const Home: React.FC = () => {
       {secondaryArticles.length > 0 && (
         <Section background="white" paddingY={8}>
           <Container>
-            <Grid columns={2} gap={6} responsive={false}>
-              {secondaryArticles.map((article) => (
-                <NewsCardLarge key={article.id} article={article} />
-              ))}
-            </Grid>
+            <motion.div
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+            >
+              <Grid columns={2} gap={6} responsive={false}>
+                {secondaryArticles.map((article) => (
+                  <motion.div key={article.id} variants={itemVariants}>
+                    <NewsCardLarge article={article} />
+                  </motion.div>
+                ))}
+              </Grid>
+            </motion.div>
           </Container>
         </Section>
       )}
@@ -99,11 +125,19 @@ const Home: React.FC = () => {
             <div style={{ marginBottom: spacing[8] }}>
               <Headline level={2}>Последние новости</Headline>
             </div>
-            <Grid columns={3} gap={6}>
-              {latestArticles.map((article) => (
-                <NewsCardMedium key={article.id} article={article} />
-              ))}
-            </Grid>
+            <motion.div
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+            >
+              <Grid columns={3} gap={6}>
+                {latestArticles.map((article) => (
+                  <motion.div key={article.id} variants={itemVariants}>
+                    <NewsCardMedium article={article} />
+                  </motion.div>
+                ))}
+              </Grid>
+            </motion.div>
           </Container>
         </Section>
       )}
