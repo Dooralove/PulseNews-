@@ -25,6 +25,9 @@ export const NewsCardLarge: React.FC<NewsCardLargeProps> = ({ article }) => {
     backgroundColor: colors.background.primary,
     borderRadius: '8px',
     overflow: 'hidden',
+    height: '100%',
+    display: 'flex',
+    flexDirection: 'column',
   };
 
   const imageContainerStyles: React.CSSProperties = {
@@ -44,6 +47,12 @@ export const NewsCardLarge: React.FC<NewsCardLargeProps> = ({ article }) => {
 
   const contentStyles: React.CSSProperties = {
     paddingTop: spacing[4],
+    paddingLeft: spacing[4],
+    paddingRight: spacing[4],
+    paddingBottom: spacing[4],
+    flex: 1,
+    display: 'flex',
+    flexDirection: 'column',
   };
 
   const titleStyles: React.CSSProperties = {
@@ -64,6 +73,7 @@ export const NewsCardLarge: React.FC<NewsCardLargeProps> = ({ article }) => {
     display: 'flex',
     gap: spacing[2],
     alignItems: 'center',
+    marginTop: 'auto',
   };
 
   return (

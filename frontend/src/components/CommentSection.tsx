@@ -38,13 +38,19 @@ const CommentSection: React.FC<CommentSectionProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('CommentSection: Submit clicked');
+    console.log('CommentSection: Is authenticated:', isAuthenticated);
+    console.log('CommentSection: Article ID:', articleId);
+    console.log('CommentSection: Comment content:', newComment);
     
     if (!isAuthenticated) {
+      console.log('CommentSection: Not authenticated, redirecting to login');
       navigate('/login');
       return;
     }
 
     if (!newComment.trim()) {
+      console.log('CommentSection: Comment is empty');
       setError('Комментарий не может быть пустым');
       return;
     }
@@ -53,13 +59,17 @@ const CommentSection: React.FC<CommentSectionProps> = ({
     setError('');
 
     try {
-      await commentService.createComment({
+      console.log('CommentSection: Calling commentService.createComment');
+      const result = await commentService.createComment({
         article: articleId,
         content: newComment.trim(),
       });
+      console.log('CommentSection: Comment created successfully:', result);
       setNewComment('');
       onCommentAdded();
     } catch (err: any) {
+      console.error('CommentSection: Error creating comment:', err);
+      console.error('CommentSection: Error response:', err.response);
       setError(err.response?.data?.detail || 'Не удалось добавить комментарий');
     } finally {
       setLoading(false);

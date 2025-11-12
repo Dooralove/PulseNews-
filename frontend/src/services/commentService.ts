@@ -3,8 +3,9 @@ import { Comment, CommentCreateData } from '../types';
 
 class CommentService {
   async getComments(articleId: number): Promise<Comment[]> {
-    const response = await api.get<Comment[]>(`/articles/${articleId}/comments/`);
-    return response.data;
+    const response = await api.get(`/articles/${articleId}/comments/`);
+    // Backend returns paginated response with 'results' field
+    return response.data.results || response.data;
   }
 
   async createComment(data: CommentCreateData): Promise<Comment> {

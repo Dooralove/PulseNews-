@@ -98,6 +98,11 @@ class ArticleService {
     return response.data;
   }
 
+  async unpublishArticle(id: number): Promise<Article> {
+    const response = await api.post<Article>(`/articles/${id}/unpublish/`);
+    return response.data;
+  }
+
   async getCategories(): Promise<Category[]> {
     const response = await api.get<Category[]>('/categories/');
     return response.data;

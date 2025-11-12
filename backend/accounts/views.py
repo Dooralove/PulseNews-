@@ -131,6 +131,21 @@ class UserProfileView(APIView):
             return Response(serializer.data)
             
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    def delete(self, request):
+        """Delete the current user's account."""
+        user = request.user
+        
+        # Log account deletion activity before deleting
+        log_user_activity(user, 'account_delete', request)
+        
+        # Delete the user account
+        user.delete()
+        
+        return Response(
+            {"message": "Аккаунт успешно удален"},
+            status=status.HTTP_204_NO_CONTENT
+        )
 
 
 class PasswordChangeView(APIView):

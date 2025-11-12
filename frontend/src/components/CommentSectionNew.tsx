@@ -38,26 +38,39 @@ const CommentSectionNew: React.FC<CommentSectionNewProps> = ({ articleId }) => {
   }, [articleId]);
 
   const loadComments = async () => {
+    console.log('CommentSectionNew: Loading comments for article', articleId);
     setLoadingComments(true);
     try {
       const data = await commentService.getComments(articleId);
+      console.log('CommentSectionNew: Raw response:', data);
+      console.log('CommentSectionNew: Is array?', Array.isArray(data));
+      console.log('CommentSectionNew: Number of comments:', data?.length || 0);
+      console.log('CommentSectionNew: First comment:', data?.[0]);
       setComments(data);
     } catch (err) {
-      console.error('Failed to load comments:', err);
+      console.error('CommentSectionNew: Failed to load comments:', err);
+      console.error('CommentSectionNew: Error details:', err);
     } finally {
       setLoadingComments(false);
+      console.log('CommentSectionNew: Loading finished, loadingComments set to false');
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('CommentSectionNew: Submit clicked');
+    console.log('CommentSectionNew: Is authenticated:', isAuthenticated);
+    console.log('CommentSectionNew: Article ID:', articleId);
+    console.log('CommentSectionNew: Comment content:', newComment);
     
     if (!isAuthenticated) {
+      console.log('CommentSectionNew: Not authenticated, redirecting to login');
       navigate('/login');
       return;
     }
 
     if (!newComment.trim()) {
+      console.log('CommentSectionNew: Comment is empty');
       setError('Комментарий не может быть пустым');
       return;
     }
@@ -66,13 +79,17 @@ const CommentSectionNew: React.FC<CommentSectionNewProps> = ({ articleId }) => {
     setError('');
 
     try {
-      await commentService.createComment({
+      console.log('CommentSectionNew: Calling commentService.createComment');
+      const result = await commentService.createComment({
         article: articleId,
         content: newComment,
       });
+      console.log('CommentSectionNew: Comment created successfully:', result);
       setNewComment('');
       await loadComments();
     } catch (err: any) {
+      console.error('CommentSectionNew: Error creating comment:', err);
+      console.error('CommentSectionNew: Error response:', err.response);
       setError(err.response?.data?.detail || 'Не удалось добавить комментарий');
     } finally {
       setLoading(false);
@@ -157,6 +174,9 @@ const CommentSectionNew: React.FC<CommentSectionNewProps> = ({ articleId }) => {
     border: `1px solid ${colors.border.light}`,
   };
 
+  console.log('CommentSectionNew: Rendering with', comments.length, 'comments');
+  console.log('CommentSectionNew: loadingComments:', loadingComments);
+  
   return (
     <div style={sectionStyles}>
       <div style={{ marginBottom: spacing[6] }}>
@@ -208,15 +228,25 @@ const CommentSectionNew: React.FC<CommentSectionNewProps> = ({ articleId }) => {
         </Alert>
       )}
 
-      {loadingComments ? (
-        <Typography>Загрузка комментариев...</Typography>
-      ) : comments.length === 0 ? (
-        <Alert severity="info">Комментариев пока нет. Будьте первым!</Alert>
-      ) : (
-        <div style={{ border: `1px solid ${colors.border.light}` }}>
-          {comments.map((comment) => renderComment(comment))}
-        </div>
-      )}
+      {(() => {
+        console.log('CommentSectionNew: Render check - loadingComments:', loadingComments);
+        console.log('CommentSectionNew: Render check - comments.length:', comments.length);
+        console.log('CommentSectionNew: Render check - comments:', comments);
+        
+        if (loadingComments) {
+          return <Typography>Загрузка комментариев...</Typography>;
+        }
+        
+        if (!Array.isArray(comments) || comments.length === 0) {
+          return <Alert severity="info">Комментариев пока нет. Будьте первым!</Alert>;
+        }
+        
+        return (
+          <div style={{ border: `1px solid ${colors.border.light}` }}>
+            {comments.map((comment) => renderComment(comment))}
+          </div>
+        );
+      })()}
     </div>
   );
 };

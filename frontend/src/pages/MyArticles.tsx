@@ -122,6 +122,7 @@ const MyArticles: React.FC = () => {
     }
   };
 
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'published':

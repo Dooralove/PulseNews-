@@ -59,6 +59,33 @@ class ArticleViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         queryset = super().get_queryset()
         
+        # Check if status filter is explicitly provided
+        status_filter = self.request.query_params.get('status', None)
+        
+        # If status is explicitly set to 'published', only show published articles
+        if status_filter == 'published':
+            queryset = queryset.filter(status='published')
+        # If status is explicitly set to 'draft', only show user's own drafts
+        elif status_filter == 'draft':
+            if self.request.user.is_authenticated:
+                queryset = queryset.filter(status='draft', author=self.request.user)
+            else:
+                queryset = queryset.none()
+        # If no status filter is provided, apply default visibility rules
+        elif status_filter is None:
+            # For staff users, include all articles (including drafts)
+            if self.request.user.is_staff:
+                pass  # Show all articles
+            # For authenticated users, show published articles + their own drafts
+            elif self.request.user.is_authenticated:
+                queryset = queryset.filter(
+                    Q(status='published') | 
+                    Q(status='draft', author=self.request.user)
+                )
+            # For unauthenticated users, only show published articles
+            else:
+                queryset = queryset.filter(status='published')
+        
         # Filter by multiple tags (comma-separated)
         tags = self.request.query_params.get('tags', None)
         if tags:
@@ -75,19 +102,7 @@ class ArticleViewSet(viewsets.ModelViewSet):
                 Q(excerpt__icontains=search)
             ).distinct()
         
-        # For staff users, include all articles (including drafts)
-        if self.request.user.is_staff:
-            return queryset
-            
-        # For authenticated users, show published articles + their own drafts
-        if self.request.user.is_authenticated:
-            return queryset.filter(
-                Q(status='published') | 
-                Q(author=self.request.user)
-            ).distinct()
-            
-        # For unauthenticated users, only show published articles
-        return queryset.filter(status='published')
+        return queryset
     
     def perform_create(self, serializer):
         # Set the author to the current user
@@ -119,7 +134,31 @@ class ArticleViewSet(viewsets.ModelViewSet):
             'action': 'published'
         })
         
-        return Response({'status': 'article published'})
+        serializer = self.get_serializer(article)
+        return Response(serializer.data)
+    
+    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
+    def unpublish(self, request, pk=None):
+        """Custom action to unpublish an article (move to draft)."""
+        article = self.get_object()
+        if article.author != request.user and not request.user.is_staff:
+            return Response(
+                {"detail": "You don't have permission to unpublish this article."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        article.status = 'draft'
+        article.save()
+        
+        # Log article update activity
+        log_user_activity(request.user, 'article_update', request, {
+            'article_id': article.id,
+            'article_title': article.title,
+            'action': 'unpublished'
+        })
+        
+        serializer = self.get_serializer(article)
+        return Response(serializer.data)
 
 
 class CategoryViewSet(viewsets.ModelViewSet):
@@ -219,10 +258,11 @@ class ArticleCommentViewSet(viewsets.ModelViewSet):
     filter_backends = [filters.OrderingFilter]
     ordering_fields = ['created_at', 'updated_at']
     ordering = ['created_at']
+    pagination_class = None  # Disable pagination for comments
     
     def get_queryset(self):
         article_pk = self.kwargs.get('article_pk')
-        queryset = Comment.objects.filter(article_id=article_pk)
+        queryset = Comment.objects.filter(article_id=article_pk, parent__isnull=True)
         
         # For non-moderators, only show active comments
         if not (self.request.user.is_authenticated and self.request.user.can_moderate_content()):
